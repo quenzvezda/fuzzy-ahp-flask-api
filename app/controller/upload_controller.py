@@ -2,6 +2,7 @@
 
 from flask import request, jsonify, current_app
 from app.service.upload_service import save_file
+from app.service.upload_service import get_file_list
 
 
 def allowed_file(filename):
@@ -21,3 +22,8 @@ def upload_file():
         return jsonify(save_file(file, current_app.config['UPLOAD_FOLDER']))
 
     return jsonify({'error': 'File type not allowed'}), 400
+
+
+def get_data():
+    files = get_file_list(current_app.config['UPLOAD_FOLDER'])
+    return jsonify(files)
