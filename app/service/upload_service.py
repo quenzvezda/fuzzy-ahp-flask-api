@@ -33,3 +33,11 @@ def get_file_list(upload_folder):
                 'date_created': date_created
             })
     return files
+
+
+def delete_file(filename, upload_folder):
+    file_path = os.path.join(upload_folder, filename)
+    if os.path.exists(file_path):
+        os.remove(file_path)
+        return {'message': f'File {filename} deleted successfully'}, 200
+    return {'error': f'File {filename} not found'}, 404

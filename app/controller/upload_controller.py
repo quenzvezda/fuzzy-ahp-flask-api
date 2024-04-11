@@ -1,8 +1,7 @@
 # app/controller/upload_controller.py
 
 from flask import request, jsonify, current_app
-from app.service.upload_service import save_file
-from app.service.upload_service import get_file_list
+from app.service.upload_service import save_file, get_file_list, delete_file
 
 
 def allowed_file(filename):
@@ -27,3 +26,7 @@ def upload_file():
 def get_data():
     files = get_file_list(current_app.config['UPLOAD_FOLDER'])
     return jsonify(files)
+
+
+def delete_data(filename):
+    return jsonify(delete_file(filename, current_app.config['UPLOAD_FOLDER']))
