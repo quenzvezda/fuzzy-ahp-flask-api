@@ -1,10 +1,11 @@
 # app/service/data_service.py
-
 from datetime import datetime
 import os
+from flask import current_app
 
 
-def get_file_list(upload_folder):
+def get_file_list():
+    upload_folder = current_app.config['UPLOAD_FOLDER']
     files = []
     for filename in os.listdir(upload_folder):
         file_path = os.path.join(upload_folder, filename)
@@ -22,7 +23,8 @@ def get_file_list(upload_folder):
     return files
 
 
-def delete_file(filename, upload_folder):
+def delete_file(filename):
+    upload_folder = current_app.config['UPLOAD_FOLDER']
     file_path = os.path.join(upload_folder, filename)
     if os.path.exists(file_path):
         os.remove(file_path)
