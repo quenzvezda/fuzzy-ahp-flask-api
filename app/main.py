@@ -1,21 +1,15 @@
 # app/main.py
 
-from flask import Blueprint
-from app.controller.upload_controller import upload_file, get_data, delete_data
-
-main = Blueprint('main', __name__)
-
-
-@main.route('/api/upload', methods=['POST'])
-def upload():
-    return upload_file()
+from flask import Flask
+from app.controller.upload_controller import upload_bp
+from app.controller.data_controller import data_bp
 
 
-@main.route('/api/data', methods=['GET'])
-def data():
-    return get_data()
+def create_app():
+    app = Flask(__name__)
 
+    # Register Blueprints
+    app.register_blueprint(upload_bp)
+    app.register_blueprint(data_bp)
 
-@main.route('/api/data/<filename>', methods=['DELETE'])
-def delete(filename):
-    return delete_data(filename)
+    return app

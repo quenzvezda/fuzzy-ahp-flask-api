@@ -1,15 +1,12 @@
 # app/controller/upload_controller.py
+from flask import request, jsonify, current_app, Blueprint
+from app.service.upload_service import save_file
 
-from flask import request, jsonify, current_app
-from app.service.upload_service import save_file, get_file_list, delete_file
-
-
-def allowed_file(filename):
-    return '.' in filename and \
-        filename.rsplit('.', 1)[1].lower() in {'xls', 'xlsx', 'csv'}
+upload_bp = Blueprint('upload', __name__)
 
 
-def upload_file():
+@upload_bp.route('/api/upload', methods=['POST'])
+def upload():
     if 'file' not in request.files:
         return jsonify({'error': 'No file part'}), 400
 
@@ -17,16 +14,5 @@ def upload_file():
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
 
-    if allowed_file(file.filename):
-        return jsonify(save_file(file, current_app.config['UPLOAD_FOLDER']))
-
-    return jsonify({'error': 'File type not allowed'}), 400
-
-
-def get_data():
-    files = get_file_list(current_app.config['UPLOAD_FOLDER'])
-    return jsonify(files)
-
-
-def delete_data(filename):
-    return jsonify(delete_file(filename, current_app.config['UPLOAD_FOLDER']))
+    response = save_file(file, current_app.config['UPLOAD_FOLDER'])
+    return jsonify(response)
