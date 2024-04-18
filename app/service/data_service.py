@@ -2,10 +2,13 @@
 from datetime import datetime
 import os
 from flask import current_app
+from app.util.directory_util import ensure_directory_exists
 
 
 def get_file_list():
     upload_folder = current_app.config['UPLOAD_FOLDER']
+    ensure_directory_exists(upload_folder)
+
     files = []
     for filename in os.listdir(upload_folder):
         file_path = os.path.join(upload_folder, filename)

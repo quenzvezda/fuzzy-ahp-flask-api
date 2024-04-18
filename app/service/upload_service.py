@@ -4,9 +4,13 @@ from werkzeug.utils import secure_filename
 import os
 import random
 
+from app.util.directory_util import ensure_directory_exists
+
 
 def save_file(file):
     upload_folder = current_app.config['UPLOAD_FOLDER']
+    ensure_directory_exists(upload_folder)
+
     if file:
         filename = secure_filename(file.filename)
         name, ext = os.path.splitext(filename)
