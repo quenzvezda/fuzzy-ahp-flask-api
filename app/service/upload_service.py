@@ -1,4 +1,6 @@
 # app/service/upload_service.py
+import json
+
 import pandas as pd
 from flask import current_app
 from werkzeug.utils import secure_filename
@@ -9,7 +11,6 @@ from app.util.directory_util import ensure_directory_exists
 
 
 def convert_to_json(file_path, new_filename, upload_folder):
-    # Mengekstrak ekstensi file dan menentukan format file
     if new_filename.endswith('.csv'):
         df = pd.read_csv(file_path)
     elif new_filename.endswith(('.xls', '.xlsx')):
@@ -17,14 +18,18 @@ def convert_to_json(file_path, new_filename, upload_folder):
     else:
         return {'error': 'Unsupported file format'}, 415
 
-    # Tentukan path direktori JSON
+    columns_order = list(df.columns)
     json_folder = os.path.join(upload_folder, "json")
-    ensure_directory_exists(json_folder)  # Pastikan folder JSON ada
-
-    # Mengonversi DataFrame ke JSON
+    ensure_directory_exists(json_folder)
     json_path = os.path.join(json_folder, os.path.splitext(new_filename)[0] + '.json')
     df.to_json(json_path, orient='records', lines=True)
+
+    columns_path = os.path.join(json_folder, os.path.splitext(new_filename)[0] + '_columns.json')
+    with open(columns_path, 'w') as f:
+        json.dump(columns_order, f)
+
     return json_path
+
 
 
 def save_file(file):

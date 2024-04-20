@@ -63,40 +63,43 @@ def delete_file(filename):
 
 def paginate_data_json(filename, page, per_page=10):
     upload_folder = current_app.config['UPLOAD_FOLDER']
-    # Bangun path ke file JSON dalam subfolder 'json'
     json_path = os.path.join(upload_folder, 'json', os.path.splitext(filename)[0] + '.json')
+    columns_path = json_path.replace('.json', '_columns.json')
 
     if not os.path.exists(json_path):
         return {'error': 'JSON file not found'}, 404
 
-    # Menghitung jumlah total baris di file JSON untuk informasi paginasi
+    with open(columns_path, 'r') as file:
+        column_order = json.load(file)
+
     total = count_total_rows(json_path)
-
-    # Menghitung indeks baris untuk paginasi
     start_line = (page - 1) * per_page
-    num_lines = per_page
-    data = read_json_partial(json_path, start_line, num_lines)
-
-    # Hitung total halaman
-    total_pages = (total + per_page - 1) // per_page
+    data = read_json_partial(json_path, start_line, per_page)
 
     return {
         'data': data,
+        'columns': column_order,
         'page': page,
         'per_page': per_page,
-        'total_pages': total_pages,
+        'total_pages': (total + per_page - 1) // per_page,
         'total': total
     }
 
 
 def read_json_partial(json_path, start_line, num_lines):
+    columns_path = json_path.replace('.json', '_columns.json')
+    with open(columns_path, 'r') as f:
+        columns_order = json.load(f)
+
     data = []
     with open(json_path, 'r') as file:
         for i, line in enumerate(file):
             if i >= start_line + num_lines:
                 break
             if i >= start_line:
-                data.append(json.loads(line))
+                record = json.loads(line)
+                ordered_record = {col: record[col] for col in columns_order if col in record}
+                data.append(ordered_record)
     return data
 
 
