@@ -32,10 +32,33 @@ def get_file_list():
 def delete_file(filename):
     upload_folder = current_app.config['UPLOAD_FOLDER']
     file_path = os.path.join(upload_folder, filename)
+
+    # Tentukan path file JSON
+    json_folder = os.path.join(upload_folder, "json")
+    json_file_path = os.path.join(json_folder, os.path.splitext(filename)[0] + '.json')
+
+    messages = []
+    error = False
+
+    # Hapus file utama jika ada
     if os.path.exists(file_path):
         os.remove(file_path)
-        return {'message': f'File {filename} deleted successfully'}, 200
-    return {'error': f'File {filename} not found'}, 404
+        messages.append(f'File {filename} deleted successfully')
+    else:
+        messages.append(f'File {filename} not found')
+        error = True
+
+    # Hapus file JSON jika ada
+    if os.path.exists(json_file_path):
+        os.remove(json_file_path)
+        messages.append(f'JSON file for {filename} deleted successfully')
+    else:
+        messages.append(f'JSON file for {filename} not found')
+        error = True
+
+    if error:
+        return {'error': ' '.join(messages)}, 404
+    return {'message': ' '.join(messages)}, 200
 
 
 def paginate_data_json(filename, page, per_page=10):

@@ -17,8 +17,12 @@ def convert_to_json(file_path, new_filename, upload_folder):
     else:
         return {'error': 'Unsupported file format'}, 415
 
+    # Tentukan path direktori JSON
+    json_folder = os.path.join(upload_folder, "json")
+    ensure_directory_exists(json_folder)  # Pastikan folder JSON ada
+
     # Mengonversi DataFrame ke JSON
-    json_path = os.path.splitext(file_path)[0] + '.json'
+    json_path = os.path.join(json_folder, os.path.splitext(new_filename)[0] + '.json')
     df.to_json(json_path, orient='records', lines=True)
     return json_path
 
@@ -35,7 +39,7 @@ def save_file(file):
         file_path = os.path.join(upload_folder, new_filename)
         file.save(file_path)
 
-        # Konversi file yang diupload ke JSON
+        # Konversi file yang diupload ke JSON dan simpan di subfolder "json"
         json_path = convert_to_json(file_path, new_filename, upload_folder)
         if isinstance(json_path, dict):  # Cek jika terjadi error pada konversi
             return json_path
