@@ -10,7 +10,7 @@ data_bp = Blueprint('data', __name__)
 @data_bp.route('/api/data', methods=['GET'])
 def data():
     files = get_file_list()
-    time.sleep(4)
+    time.sleep(2)
     return jsonify(files)
 
 

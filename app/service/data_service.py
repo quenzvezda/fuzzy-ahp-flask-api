@@ -1,10 +1,10 @@
 # app/service/data_service.py
 import json
-import time
-from datetime import datetime
 import os
-import pandas as pd
+from datetime import datetime
+
 from flask import current_app
+
 from app.util.directory_util import ensure_directory_exists
 
 
@@ -63,35 +63,43 @@ def delete_file(filename):
 
 def paginate_data_json(filename, page, per_page=10):
     upload_folder = current_app.config['UPLOAD_FOLDER']
-    json_path = os.path.join(upload_folder, filename.rsplit('.', 1)[0] + '.json')
+    # Bangun path ke file JSON dalam subfolder 'json'
+    json_path = os.path.join(upload_folder, 'json', os.path.splitext(filename)[0] + '.json')
 
     if not os.path.exists(json_path):
         return {'error': 'JSON file not found'}, 404
 
-    # Hitung baris awal berdasarkan halaman dan jumlah per halaman
+    # Menghitung jumlah total baris di file JSON untuk informasi paginasi
+    total = count_total_rows(json_path)
+
+    # Menghitung indeks baris untuk paginasi
     start_line = (page - 1) * per_page
-    data = read_json_partial(json_path, start_line, per_page)
+    num_lines = per_page
+    data = read_json_partial(json_path, start_line, num_lines)
 
-    # Anggap total baris tersedia di tempat lain atau hitung sekali dan simpan
-    # Sementara ini, kembalikan data tanpa info total halaman
-    return {'data': data, 'page': page, 'per_page': per_page}
+    # Hitung total halaman
+    total_pages = (total + per_page - 1) // per_page
+
+    return {
+        'data': data,
+        'page': page,
+        'per_page': per_page,
+        'total_pages': total_pages,
+        'total': total
+    }
 
 
-def count_total_rows(file_path, filename):
-    if filename.endswith('.csv'):
-        with open(file_path, 'r') as file:
-            return sum(1 for row in file) - 1  # Mengurangi satu untuk header
-    elif filename.endswith(('.xls', '.xlsx')):
-        df = pd.read_excel(file_path)
-        return len(df)
-
-
-def read_json_partial(file_path, start_line, num_lines):
+def read_json_partial(json_path, start_line, num_lines):
     data = []
-    with open(file_path, 'r') as file:
+    with open(json_path, 'r') as file:
         for i, line in enumerate(file):
             if i >= start_line + num_lines:
                 break
             if i >= start_line:
                 data.append(json.loads(line))
     return data
+
+
+def count_total_rows(json_path):
+    with open(json_path, 'r') as file:
+        return sum(1 for line in file)
