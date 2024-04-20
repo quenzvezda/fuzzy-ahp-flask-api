@@ -1,10 +1,26 @@
 # app/service/upload_service.py
+import pandas as pd
 from flask import current_app
 from werkzeug.utils import secure_filename
 import os
 import random
 
 from app.util.directory_util import ensure_directory_exists
+
+
+def convert_to_json(file_path, new_filename, upload_folder):
+    # Mengekstrak ekstensi file dan menentukan format file
+    if new_filename.endswith('.csv'):
+        df = pd.read_csv(file_path)
+    elif new_filename.endswith(('.xls', '.xlsx')):
+        df = pd.read_excel(file_path)
+    else:
+        return {'error': 'Unsupported file format'}, 415
+
+    # Mengonversi DataFrame ke JSON
+    json_path = os.path.splitext(file_path)[0] + '.json'
+    df.to_json(json_path, orient='records', lines=True)
+    return json_path
 
 
 def save_file(file):
@@ -18,5 +34,13 @@ def save_file(file):
         new_filename = f"{name}_{random_suffix}{ext}"
         file_path = os.path.join(upload_folder, new_filename)
         file.save(file_path)
-        return {'message': 'File uploaded successfully', 'filename': new_filename}, 200
+
+        # Konversi file yang diupload ke JSON
+        json_path = convert_to_json(file_path, new_filename, upload_folder)
+        if isinstance(json_path, dict):  # Cek jika terjadi error pada konversi
+            return json_path
+
+        return {'message': 'File uploaded and converted to JSON successfully', 'filename': new_filename,
+                'json_path': json_path}, 200
+
     return {'error': 'No file provided'}, 400
