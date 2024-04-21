@@ -106,3 +106,17 @@ def read_json_partial(json_path, start_line, num_lines):
 def count_total_rows(json_path):
     with open(json_path, 'r') as file:
         return sum(1 for line in file)
+
+
+def get_column_names(filename):
+    upload_folder = current_app.config['UPLOAD_FOLDER']
+    columns_path = os.path.join(upload_folder, 'json', os.path.splitext(filename)[0] + '_columns.json')
+
+    if not os.path.exists(columns_path):
+        return {'error': 'Columns file not found'}, 404
+
+    with open(columns_path, 'r') as file:
+        column_order = json.load(file)
+
+    return {'columns': column_order}
+
